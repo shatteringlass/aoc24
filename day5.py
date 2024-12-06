@@ -8,8 +8,10 @@ def parse_input():
 
     with open(f"day{DAY}.txt", "r") as fp:
         rules, updates = fp.read().split("\n\n")
-        rules = [tuple(int(x) for x in r.split("|")) for r in rules.split("\n")]
-        updates = [tuple(int(x) for x in u.split(",")) for u in updates.split("\n")]
+        rules = [tuple(int(x) for x in r.split("|"))
+                 for r in rules.split("\n")]
+        updates = [tuple(int(x) for x in u.split(","))
+                   for u in updates.split("\n")]
 
     return rules, updates
 
@@ -45,17 +47,21 @@ def part_one(rules, updates):
 
 
 def reorder(update, rules):
-    seen = [update[0]]
-    for p in update[1:]:
+    if len(update) <= 1:
+        return update
 
-        for s_idx in range(len(seen), 0, -1):
-            if check_order(seen[s_idx - 1], p, rules):
-                if p not in seen:
-                    seen.append(p)
-            else:
-                seen = seen[: s_idx - 1] + [p, seen[s_idx - 1]]
+    ls, rs = [], []
+    l = update[0]
+    for r in update[1:]:
+        if check_order(r, l, rules):
+            # keep r before l
+            ls.append(r)
+        else:
+            # move r after l
+            rs.append(r)
 
-    return seen
+    return reorder(ls, rules) + [l] + reorder(rs, rules)
+
 
 
 def part_two(rules, updates):
