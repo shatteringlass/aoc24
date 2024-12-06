@@ -3,34 +3,38 @@ PARTS = [1, 2]
 
 import re
 
+
 def parse_input():
     with open(f"day{DAY}.txt", "r") as fp:
         text = fp.read()
     return text
+
 
 def part_one(text):
     result = 0
 
     exp = re.compile(r"mul\((\d{1,3}),(\d{1,3})\)")
 
-    for (x,y) in exp.findall(text):
+    for x, y in exp.findall(text):
         result += int(x) * int(y)
 
     return result
+
 
 def part_two(text):
     result = 0
     do_flag = True
 
-    do_exp = re.compile(r"do\(\)")
-    dont_exp = re.compile(r"don't\(\)")
-    exp = re.compile(r"mul\((\d{1,3}),(\d{1,3})\)")
+    exp = re.compile(r"do\(\)|don't\(\)|mul\((\d{1,3}),(\d{1,3})\)")
 
-    dos = [do.span()[1] for do in do_exp.finditer(text)]
-    donts = [dont.span()[1] for dont in dont_exp.finditer(text)]
-
-    print(dos)
-    print(donts)
+    for m in exp.finditer(text):
+        if m.group(0) == "don't()":
+            do_flag = False
+        elif m.group(0) == "do()":
+            do_flag = True
+        elif do_flag:
+            x, y = m.groups()
+            result += int(x) * int(y)
 
     return result
 
