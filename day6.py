@@ -22,40 +22,77 @@ def parse_input():
     return row+1, col+1, start, obstacles
 
 
-def walk(position, direction, obstacles):
+def step(position, direction, obstacles):
     next_position = tuple(sum(x) for x in zip(position, direction.value))
-    if next_position in obstacles:
+    while next_position in obstacles:
+        # print(f"Met obstacle at {next_position}")
         direction = Direction((direction.value[1], -direction.value[0]))
-        print(f"Heading {direction} now")
-        return tuple(sum(x) for x in zip(position, direction.value)), direction
+        next_position = tuple(sum(x) for x in zip(position, direction.value))
     return next_position, direction
 
 
-def part_one(rows, cols, start, obstacles):
-    result = 0
+def walk_grid(rows, cols, start, obstacles, direction=Direction.N):
     seen = set()
+    seen.add((start, Direction(direction.value)))
+    sequence = list()
     pos = start
-    seen.add(pos)
-    print(f"The grid has {rows} rows and {cols} cols")
-    print(f"Starting at {pos}")
-    direction = Direction.N
 
     while pos[0] >= 0 and pos[1] >= 0 and pos[0] < rows and pos[1] < cols:
-        print(f"Currently at {pos} heading {direction}")
-        pos, direction = walk(pos, direction, obstacles)
-        if pos in seen:
-            continue
+        pos, direction = step(pos, direction, obstacles)
+        if (pos, direction) in seen:
+            return None
         else:
-            seen.add(pos)
-            result += 1
+            seen.add((pos, direction))
+            sequence.append(pos)
 
-    return result
+    return sequence
+
+
+def print_grid(rows, cols, start, obstacles, visited):
+    for r in range(rows):
+        row = ''
+        for c in range(cols):
+            is_obstacle = False
+            for obstacle in obstacles:
+                if (r, c) == obstacle:
+                    row += '#'
+                    is_obstacle = True
+                    break
+            if not is_obstacle:
+                if (r, c) == start:
+                    row += '^'
+                elif (r, c) in visited:
+                    row += 'x'
+                else:
+                    row += '.'
+        print(row)
+
+
+def part_one(rows, cols, start, obstacles):
+
+    steps = walk_grid(rows, cols, start, obstacles)
+    #print_grid(rows, cols, start, obstacles, steps)
+
+    return len(set(s for s in steps))
 
 
 def part_two(rows, cols, start, obstacles):
-    result = 0
+    added_obstacles = set()
 
-    return result
+    path = walk_grid(rows, cols, start, obstacles)
+
+    for tile in path:
+        if tile != start:
+            new_obstacles = obstacles.copy()
+            new_obstacles.add(tile)
+            revisited = walk_grid(rows, cols, start, new_obstacles)
+            if not revisited:
+                # print(f"Adding an obstacle at {tile} creates a loop!")
+                added_obstacles.add(tile)
+                #print_grid(rows, cols, start, new_obstacles, visited)
+                # input()
+
+    return len(added_obstacles)
 
 
 def main():
