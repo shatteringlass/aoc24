@@ -9,41 +9,46 @@ def parse_input():
             for idx, char in enumerate(line):
                 x = int(char)
                 if idx % 2 == 0:
-                    files.append((x, int(idx/2)))
+                    files.append((int(idx / 2), x))
                 else:
-                    spaces.append(x)
+                    spaces.append((int(idx / 2) + 1, x))
     return files, spaces
+
+
+def defrag(files, spaces):
+
+    if not spaces or not files:
+        return []
+
+    pos, width = spaces[0]
+    file_id, blocks = files[-1]
+
+    if width == blocks:
+        prefix = [files[0], (file_id, width)]
+        new_files = files[1:-1]
+        new_spaces = spaces[1:]
+    elif width < blocks:
+        # not enough space, split in two
+        prefix = [files[0], (file_id, width)]
+        new_files = files[1:-1] + [(file_id, blocks - width)]
+        new_spaces = spaces[1:]
+    elif width > blocks:
+        # leftover free space
+        prefix = [files[0], (file_id, blocks)]
+        new_files = files[1:-1]
+        new_spaces = [(pos, width - blocks)] + spaces[1:]
+    return prefix + defrag(new_files, new_spaces)
+
 
 def part_one(files, spaces):
     result = 0
 
-    input(files)
+    reordered = defrag(files, spaces)
 
-    reordered = [-1 for _ in range(len(files))]
-    idx = len(files) - 1
-    kdx = 0
-
-    for jdx, space in enumerate(spaces):
-        reordered[kdx] = files[jdx]
-        while space:
-            kdx += 1
-            reordered[kdx] = files[idx]
-            space -= 1
-            while files[idx][0] > 0:
-                files[idx] = (files[idx][0]-1, files[idx][1])
-                idx -= 1
-
-        print(kdx)
-
-        if kdx == len(files) - 1:
-            break
-
- #   while jdx < len(files):
- #       reordered[jdx] = files[]
-
-    print(reordered)
+    print(''.join([str(s)*n for (s,n) in reordered]))
 
     return result
+
 
 def part_two(files, spaces):
     result = 0
