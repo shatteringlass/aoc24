@@ -3,66 +3,57 @@ PARTS = [1, 2]
 
 
 def parse_input():
-    files, spaces = [], []
     with open(f"day{DAY}.txt", "r") as fp:
-        for line in fp:
-            for idx, char in enumerate(line):
-                x = int(char)
+        line = fp.read().strip()
+        disk = [-1 for _ in range(len(line) * 9)]
+        pos = 0
+        for idx, char in enumerate(line):
+            block_size = int(char)
+            while block_size:
                 if idx % 2 == 0:
-                    files.append((int(idx / 2), x))
-                else:
-                    spaces.append((int(idx / 2) + 1, x))
-    return files, spaces
+                    disk[pos] = idx // 2
+                block_size -= 1
+                pos += 1
+    return disk[:pos]
 
 
-def defrag(files, spaces):
+def compact(disk):
 
-    if not spaces or not files:
-        return []
+    i, j = (0, len(disk) - 1)
+    while i < j:
+        while disk[i] != -1:
+            i += 1
+        while disk[j] == -1:
+            j -= 1
+        if i < j:
+            disk[i] = disk[j]
+            disk[j] = -1
+        else:
+            break
 
-    pos, width = spaces[0]
-    file_id, blocks = files[-1]
-
-    if width == blocks:
-        prefix = [files[0], (file_id, width)]
-        new_files = files[1:-1]
-        new_spaces = spaces[1:]
-    elif width < blocks:
-        # not enough space, split in two
-        prefix = [files[0], (file_id, width)]
-        new_files = files[1:-1] + [(file_id, blocks - width)]
-        new_spaces = spaces[1:]
-    elif width > blocks:
-        # leftover free space
-        prefix = [files[0], (file_id, blocks)]
-        new_files = files[1:-1]
-        new_spaces = [(pos, width - blocks)] + spaces[1:]
-    return prefix + defrag(new_files, new_spaces)
+    return disk[:i]
 
 
-def part_one(files, spaces):
-    result = 0
+def checksum(disk):
+    return sum(i*int(d) for i,d in enumerate(disk))
 
-    reordered = defrag(files, spaces)
-
-    print(''.join([str(s)*n for (s,n) in reordered]))
-
-    return result
+def part_one(disk):
+    return checksum(compact(disk))
 
 
-def part_two(files, spaces):
+def part_two(disk):
     result = 0
 
     return result
 
 
 def main():
-    files, spaces = parse_input()
+    disk = parse_input()
     for part in PARTS:
         if part == 1:
-            print(f"Result for part {part} is {part_one(files, spaces)}")
+            print(f"Result for part {part} is {part_one(disk)}")
         elif part == 2:
-            print(f"Result for part {part} is {part_two(files, spaces)}")
+            print(f"Result for part {part} is {part_two(disk)}")
 
 
 if __name__ == "__main__":
