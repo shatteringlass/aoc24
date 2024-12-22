@@ -15,7 +15,6 @@ class ClawProblem:
         ((a_x, a_y), (b_x, b_y)) = self.increments
         x = (prize_x * b_y - prize_y*a_y) / (a_x*b_y - a_y*b_x)
         y = (prize_x - a_x*x)/a_y
-        print(f"Found solution for {self}: {x,y}")
         if x >= 0 and y >= 0 and int(x) == x and int(y) == y:
             return (int(x), int(y))
         return None
@@ -63,7 +62,13 @@ def part_one(problems):
 
 def part_two(problems):
     result = 0
-
+    offset = 10e12
+    for problem in problems:
+        px, py = problem.prize
+        problem.prize = (px + offset, py+offset)
+        cost = problem.cost()
+        if cost:
+            result += cost
     return result
 
 
