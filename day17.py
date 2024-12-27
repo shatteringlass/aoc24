@@ -7,27 +7,35 @@ class ThreeBitComputer:
     def __init__(self, registers):
         self.a, self.b, self.c = registers
         self.pointer = 0
-        self.output = []
-        self._opcodes = {0: self._adv,
-                         1: self._bxl,
-                         2: self._bst,
-                         3: self._jnz,
-                         4: self._bxc,
-                         5: self._out,
-                         6: self._bdv,
-                         7: self._cdv}
+        self._output = []
+        self._opcodes = {
+            0: self._adv,
+            1: self._bxl,
+            2: self._bst,
+            3: self._jnz,
+            4: self._bxc,
+            5: self._out,
+            6: self._bdv,
+            7: self._cdv,
+        }
+
+    @property
+    def output(self):
+        return str(self._output)[1:-1].replace(" ", "")
 
     @property
     def opcodes(self):
         return self._opcodes
 
     def run(self, program):
+        self.pointer = 0
+        self._output = list()
         while True:
-            if self.pointer//2 >= len(program):
+            if self.pointer // 2 >= len(program):
                 break
-            opcode, operand = program[self.pointer//2]
+            opcode, operand = program[self.pointer // 2]
             fun = self.opcodes[opcode]
-            #input(f"###\nPointer: {self.pointer//2}\nOpcode: {opcode} ({fun.__name__})\nOperand: {operand}\nRegistry A: {self.a}\nRegistry B: {self.b}\nRegistry C: {self.c}")
+            # input(f"###\nPointer: {self.pointer//2}\nOpcode: {opcode} ({fun.__name__})\nOperand: {operand}\nRegistry A: {self.a}\nRegistry B: {self.b}\nRegistry C: {self.c}")
             fun(operand)
 
     def fetch(self, operand):
@@ -42,7 +50,7 @@ class ThreeBitComputer:
 
     def _adv(self, operand):
         # Opcode 0
-        self.a = self.a // 2**self.fetch(operand)
+        self.a = self.a // 2 ** self.fetch(operand)
         self.pointer += 2
 
     def _bxl(self, operand):
@@ -52,7 +60,7 @@ class ThreeBitComputer:
 
     def _bst(self, operand):
         # OPcode 2
-        self.b = self.fetch(operand) % 8
+        self.b = self.fetch(operand) & 7
         self.pointer += 2
 
     def _jnz(self, operand):
@@ -68,18 +76,18 @@ class ThreeBitComputer:
         self.pointer += 2
 
     def _out(self, operand):
-        # OPCode 5
-        self.output.append(self.fetch(operand) % 8)
+        # OPCode 5 (write the last 3 bits of the operand to the output)
+        self._output.append(self.fetch(operand) & 7)
         self.pointer += 2
 
     def _bdv(self, operand):
         # Opcode 6
-        self.b = self.a // 2**self.fetch(operand)
+        self.b = self.a // 2 ** self.fetch(operand)
         self.pointer += 2
 
     def _cdv(self, operand):
         # Opcode 7
-        self.c = self.a // 2**self.fetch(operand)
+        self.c = self.a // 2 ** self.fetch(operand)
         self.pointer += 2
 
 
@@ -91,26 +99,41 @@ def parse_input():
             if "Register" in line:
                 registers.append(int(line.split()[2]))
             elif "Program" in line:
-                program = list(map(lambda x: (int(x[0]), int(x[1])), zip(
-                    *[iter(line.split()[1].replace(',', ''))]*2)))
+                program = list(
+                    map(
+                        lambda x: (int(x[0]), int(x[1])),
+                        zip(*[iter(line.split()[1].replace(",", ""))] * 2),
+                    )
+                )
 
     return registers, program
 
 
 def part_one(registers, program):
-    result = 0
-
     tbc = ThreeBitComputer(registers)
     tbc.run(program)
-    result = ''.join([str(x) for x in tbc.output])
+    result = tbc.output
 
     return result
 
 
 def part_two(registers, program):
-    result = 0
+    tbc = ThreeBitComputer(registers)
+    a = 0
+    ps = [subitem for item in program for subitem in item]
 
-    return result
+    for i in range(len(ps) - 1, -1 , -1):
+        a <<= 3
+
+        while True:
+            tbc.a = a
+            tbc.run(program)
+            if tbc._output != ps[i:]:
+                a += 1
+            else:
+                break
+
+    return a
 
 
 def main():
