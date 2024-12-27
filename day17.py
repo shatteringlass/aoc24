@@ -69,7 +69,7 @@ class ThreeBitComputer:
 
     def _out(self, operand):
         # OPCode 5
-        self.output.append(self.fetch(operand) & 8)
+        self.output.append(self.fetch(operand) % 8)
         self.pointer += 2
 
     def _bdv(self, operand):
@@ -102,7 +102,7 @@ def part_one(registers, program):
 
     tbc = ThreeBitComputer(registers)
     tbc.run(program)
-    result = tbc.output
+    result = ''.join([str(x) for x in tbc.output])
 
     return result
 
