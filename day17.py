@@ -123,7 +123,7 @@ def part_two(registers, program):
     ps = [subitem for item in program for subitem in item]
 
     for i in range(len(ps) - 1, -1 , -1):
-        a <<= 3
+        a <<= 3 # multiply by 8
 
         while True:
             tbc.a = a
