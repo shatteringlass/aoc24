@@ -14,7 +14,6 @@ class Direction(enum.Enum):
     N = (-1, 0)
     S = (1, 0)
 
-
 def valid_steps(position, obstacles):
     x, y = position
     for d in Direction:
@@ -24,10 +23,6 @@ def valid_steps(position, obstacles):
         if nx in range(GRID_SIZE) and ny in range(GRID_SIZE):
             if (nx, ny) not in obstacles:
                 yield (nx, ny)
-            else:
-                print(f"Obstacle detected at {nx, ny}")
-        else:
-            print(f"Node {nx, ny} out of bounds")
 
 
 def get_graph(obstacles):
@@ -86,34 +81,45 @@ def print_graph(graph):
     return [['.' if (r, c) in graph else '#' for c in range(GRID_SIZE)] for r in range(GRID_SIZE)]
 
 
-def parse_input():
+def parse_input(limit=LIMIT):
     falling_bytes = set()
     cnt = 0
     with open(f"day{DAY}.txt", "r") as fp:
         for line in fp:
-            if cnt == LIMIT:
+            if cnt == limit:
+                print(f"Last byte corrupted at address {cnt}: {t}")
                 break
-            falling_bytes.add(tuple(map(int, (x for x in line.split(",")))))
+            t = tuple(map(int, (x for x in line.split(","))))
+            falling_bytes.add(t)
             cnt += 1
     return falling_bytes
 
 
 def part_one(falling_bytes):
     graph = get_graph(falling_bytes)
-    for row in print_graph(graph):
-        print(''.join(row))
+    # for row in print_graph(graph):
+    #     print(''.join(row))
     path, cost = dijkstra(graph, (0, 0), (GRID_SIZE-1, GRID_SIZE-1))
     return cost
 
 
-def part_two(falling_bytes):
-    result = 0
+def part_two(falling_bytes, limit=3032):
+    # add obstacles, break as soon as cost = inf
+    cost = part_one(falling_bytes)
+    while True:
+        if cost == INF:
+            print("Unfeasible problem")
+            break
+        else:
+            print(f"After dropping {limit} bytes, the cost is {cost}")
+            limit += 1
+            cost = part_one(parse_input(limit))
 
-    return result
+    return limit
 
 
 def main():
-    falling_bytes = parse_input()
+    falling_bytes = parse_input(limit=LIMIT)
     for part in PARTS:
         if part == 1:
             print(f"Result for part {part} is {part_one(falling_bytes)}")
